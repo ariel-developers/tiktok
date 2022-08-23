@@ -19,28 +19,27 @@ interface IProps {
 }
 
 const Detail = ({ postDetails }: IProps) => {
-  
   const [post, setPost] = useState(postDetails);
-  const [playing, setPlaying] = useState(false)
-  const [isVideoMuted, setIsVideoMuted] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const router = useRouter()
-  const { userProfile }: any = useAuthStore()
-  const [comment, setComment] = useState('')
-  const [isPostingComment, setIsPostingComment] = useState(false)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isVideoMuted, setIsVideoMuted] = useState<boolean>(false);
+  const [isPostingComment, setIsPostingComment] = useState<boolean>(false);
+  const [comment, setComment] = useState<string>('');
 
-  if (!post) return null
-  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const router = useRouter();
+
+  const { userProfile }: any = useAuthStore();
+
   const onVideoClick = () => {
-        if (playing) {
+    if (isPlaying) {
       videoRef?.current?.pause();
-      setPlaying(false);
+      setIsPlaying(false);
     } else {
       videoRef?.current?.play();
-      setPlaying(true);
+      setIsPlaying(true);
     }
-  }
-  
+  };
+
   useEffect(() => {
     if (post && videoRef?.current) {
       videoRef.current.muted = isVideoMuted;
@@ -58,21 +57,28 @@ const Detail = ({ postDetails }: IProps) => {
     }
   };
 
-  const addComment = async (e : any) => {
-    e.preventDefault()
-    if (userProfile && comment) {
-      setIsPostingComment(true)
+  const addComment = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
 
-      const { data } = await axios.put(`${BASE_URL}/api/post/${post._id}`, { userId: userProfile._id, comment })
-      
-      setPost({ ...post, comments: data.comments })
-      setComment('')
-      setIsPostingComment(false)
+    if (userProfile) {
+      if (comment) {
+        setIsPostingComment(true);
+        const res = await axios.put(`${BASE_URL}/api/post/${post._id}`, {
+          userId: userProfile._id,
+          comment,
+        });
+
+        setPost({ ...post, comments: res.data.comments });
+        setComment('');
+        setIsPostingComment(false);
+      }
     }
-   }
+  };
 
   return (
-    <div className='flex w-full absolute left-0 top-0 bg-white flex-wrap lg:flex-nowrap'>
+    <>
+      {post && (
+        <div className='flex w-full absolute left-0 top-0 bg-white flex-wrap lg:flex-nowrap'>
           <div className='relative flex-2 w-[1000px] lg:w-9/12 flex justify-center items-center bg-blurred-img bg-no-repeat bg-cover bg-center'>
             <div className='opacity-90 absolute top-6 left-2 lg:left-6 flex gap-6 z-50'>
               <p className='cursor-pointer ' onClick={() => router.back()}>
@@ -91,7 +97,7 @@ const Detail = ({ postDetails }: IProps) => {
               </div>
 
               <div className='absolute top-[45%] left-[40%]  cursor-pointer'>
-                {!playing && (
+                {!isPlaying && (
                   <button onClick={onVideoClick}>
                     <BsFillPlayFill className='text-white text-6xl lg:text-8xl' />
                   </button>
@@ -112,36 +118,27 @@ const Detail = ({ postDetails }: IProps) => {
           </div>
           <div className='relative w-[1000px] md:w-[900px] lg:w-[700px]'>
             <div className='lg:mt-20 mt-10'>
-              <div className='flex gap-3 p-2 cursor-pointer font-semibold rounded '>
-          <div className='ml-4md:w-20 md:h-20 w-16 h-16'>
-            <Link href='/'>
-              <>
-                <Image
-                  width={62}
-                  height={62}
-                  className=' rounded-full'
-                  src={post.postedBy?.image}
-                  alt='user-profile'
-                  layout='responsive'
-                />
-              </>
-            </Link>
-          </div>
-          <div>
-            <Link href='/'>
-              <div className='mt-3 flex flex-col gap-2'>
-                <p className='flex gap-2 items-center md:text-md font-bold text-primary'>
-                  {post.postedBy.userName}{' '}
-                  <GoVerified className='text-blue-400 text-md' />
-                </p>
-                <p className='capitalize font-medium text-xs text-gray-500 hidden md:block'>
-                  {post.postedBy.userName}
-                </p>
+              <Link href={`/profile/${post.postedBy._id}`}>
+                <div className='flex gap-4 mb-4 bg-white w-full pl-10 cursor-pointer'>
+                  <Image
+                    width={60}
+                    height={60}
+                    alt='user-profile'
+                    className='rounded-full'
+                    src={post.postedBy.image}
+                  />
+                  <div>
+                    <div className='text-xl font-bold lowercase tracking-wider flex gap-2 items-center justify-center'>
+                      {post.postedBy.userName.replace(/\s+/g, '')}{' '}
+                      <GoVerified className='text-blue-400 text-xl' />
+                    </div>
+                    <p className='text-md'> {post.postedBy.userName}</p>
+                  </div>
+                </div>
+              </Link>
+              <div className='px-10'>
+                <p className=' text-md text-gray-600'>{post.caption}</p>
               </div>
-            </Link>
-
-              <p className='px-10 text-lg text-gray-600 '>{post.caption}</p>
-
               <div className='mt-10 px-10'>
                 {userProfile && <LikeButton
                   likes={post.likes}
@@ -155,14 +152,15 @@ const Detail = ({ postDetails }: IProps) => {
                 setComment={setComment}
                 addComment={addComment}
                 comments={post.comments}
-                isPostingComment={isPostingComment}/>
-              </div>
+                isPostingComment={isPostingComment}
+              />
+            </div>
           </div>
         </div>
-        </div>
-      </div>
-  )
-}
+      )}
+    </>
+  );
+};
 
 export const getServerSideProps = async ({
   params: { id },
@@ -176,4 +174,4 @@ export const getServerSideProps = async ({
   };
 };
 
-export default Detail
+export default Detail;

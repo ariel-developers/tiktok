@@ -11,31 +11,27 @@ import useAuthStore from '../../store/authStore';
 import { BASE_URL } from '../../utils';
 import { IUser, Video } from '../../types';
 
-
-
 const Search = ({ videos }: { videos: Video[] }) => {
   const [isAccounts, setIsAccounts] = useState(false);
   const { allUsers }: { allUsers: IUser[] } = useAuthStore();
-  
+
   const router = useRouter();
   const { searchTerm }: any = router.query;
 
   const accounts = isAccounts ? 'border-b-2 border-black' : 'text-gray-400';
   const isVideos = !isAccounts ? 'border-b-2 border-black' : 'text-gray-400';
-
-  const searchedAccounts = allUsers?.filter((user: IUser) => user.userName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const searchedAccounts = allUsers?.filter((user: IUser) => user.userName.toLowerCase().includes(searchTerm));
   
   return (
-    <div className='w-full '>
+    <div className='w-full  '>
       <div className='flex gap-10 mb-10 border-b-2 border-gray-200 md:fixed z-50 bg-white w-full'>
-         <p onClick={() => setIsAccounts(true)} className={`text-xl  font-semibold cursor-pointer ${accounts} mt-2`}>
-           Accounts
-         </p>
-         <p className={`text-xl font-semibold cursor-pointer ${isVideos} mt-2`} onClick={() => setIsAccounts(false)}>
+        <p onClick={() => setIsAccounts(true)} className={`text-xl  font-semibold cursor-pointer ${accounts} mt-2`}>
+          Accounts
+        </p>
+        <p className={`text-xl font-semibold cursor-pointer ${isVideos} mt-2`} onClick={() => setIsAccounts(false)}>
           Videos
         </p>
       </div>
-      
       {isAccounts ? (
         <div className='md:mt-16'>
           {searchedAccounts.length > 0 ? (
@@ -62,22 +58,20 @@ const Search = ({ videos }: { videos: Video[] }) => {
             <NoResults text={`No Account Results for ${searchTerm}`} />
           )}
         </div>
-
       ) : (
-          <div className='md:mt-16 flex flex-wrap gap-6 md:justify-start '>
-           {videos.length ? (
-             videos.map((post: Video, idx: number) => (
-               <VideoCard post={post} key={idx} />
-             ))
-           ) : (
-             <NoResults text={`No Video Results for ${searchTerm}`} />
-           )}
-         </div>
-        )
-      }
+        <div className='md:mt-16 flex flex-wrap gap-6 md:justify-start '>
+          {videos.length ? (
+            videos.map((post: Video, idx: number) => (
+              <VideoCard post={post} key={idx} />
+            ))
+          ) : (
+            <NoResults text={`No Video Results for ${searchTerm}`} />
+          )}
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 
 export const getServerSideProps = async ({
   params: { searchTerm },
@@ -91,4 +85,4 @@ export const getServerSideProps = async ({
   };
 };
 
-export default Search
+export default Search;

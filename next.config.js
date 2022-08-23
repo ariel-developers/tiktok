@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  image: {
-    domains: ['es.vecteezy.com'],
+  images: {
+    domains: ['images.unsplash.com', 'lh3.googleusercontent.com'],
   },
 };
 
